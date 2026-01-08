@@ -145,9 +145,8 @@ class APEX_UL_ValidationList(bpy.types.UIList):
             sub.scale_x = 0.6
             sub.label(text=f"[{item.issue_type}]")
             
-            # Message (truncated)
-            msg = item.message[:35] + "..." if len(item.message) > 35 else item.message
-            row.label(text=msg)
+            # Message (full text, no truncation)
+            row.label(text=item.message)
             
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'

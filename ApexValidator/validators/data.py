@@ -19,11 +19,7 @@ class DataValidator:
                           f"Mesh data '{obj.data.name}' has {obj.data.users} users (linked duplicates)", 
                           "WARNING"))
         
-        # Check for empty mesh data name
-        if hasattr(obj, 'data') and obj.data and obj.data.name.startswith("Mesh."):
-            issues.append(("DATA", 
-                          f"Mesh data has default name '{obj.data.name}' (should be renamed)", 
-                          "WARNING"))
+        # NOTE: Default mesh names (Mesh.001, etc.) are ignored - common in CAD data and not critical
         
         # Check for shape keys issues
         if obj.type == 'MESH' and obj.data.shape_keys:
