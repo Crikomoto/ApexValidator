@@ -244,7 +244,7 @@ class SceneProcessor:
         # CRITICAL: Batch processing to prevent context corruption with large object counts
         print("=== Phase 1: Transform Fixes ===")
         
-        BATCH_SIZE = 25  # Reduced from 50 - prevents memory exhaustion with very large scenes
+        BATCH_SIZE = 15  # Reduced from 25 - prevents access violations with transform operations
         transform_objects = []
         
         # Collect objects that need transform fixes
@@ -319,11 +319,19 @@ class SceneProcessor:
                         continue
                 
                 # Fix unapplied rotations (mesh objects only, conservative)
+                # CRITICAL: Validate object before accessing
                 try:
+                    if not obj or obj.name not in bpy.data.objects:
+                        continue
+                    # Test object accessibility
+                    _ = obj.type
                     if TransformValidator.fix_unapplied_rotation(obj):
                         rotations_applied += 1
+                except (RuntimeError, ReferenceError, AttributeError) as e:
+                    print(f"Error: Object {obj.name if obj else 'Unknown'} became invalid: {e}")
+                    continue
                 except Exception as e:
-                    print(f"Error fixing rotation for {obj.name}: {e}")
+                    print(f"Error fixing rotation for {obj.name if obj else 'Unknown'}: {e}")
                     continue
             
             # CRITICAL: Cleanup and sync after each batch
@@ -340,6 +348,11 @@ class SceneProcessor:
             # This clears temporary data copies and frees memory
             import gc
             gc.collect()
+            
+            # SAFETY: Small delay to let Blender stabilize internal state
+            # Prevents access violations from rapid operations
+            import time
+            time.sleep(0.05)  # 50ms delay
             
             print(f"Batch {batch_num}/{total_batches} complete. Total: Scales={scales_applied}, Rotations={rotations_applied}")
         
@@ -425,7 +438,7 @@ class SceneProcessor:
             except (RuntimeError, ReferenceError):
                 continue
             
-            for slot in material_slots:
+            for slot_idx, slot in enumerate(material_slots):
                 # Validate slot exists
                 if not slot:
                     continue
@@ -442,6 +455,10 @@ class SceneProcessor:
                 except (RuntimeError, ReferenceError):
                     continue
                 
+                # Skip if already the marker material
+                if mat.name == "_BROKEN TO FIX":
+                    continue
+                
                 # Skip if already processed
                 if mat in materials_processed:
                     continue
@@ -452,22 +469,19 @@ class SceneProcessor:
                     # Check if material is broken
                     is_broken, msg, severity = MaterialValidator.is_material_broken(mat)
                     
-                    # Completely rebuild broken materials with ERROR severity
+                    # Replace broken shaders (ERROR severity) with red marker material
                     if is_broken and severity == 'ERROR':
-                        MaterialValidator.fix_material(mat)
-                        materials_rebuilt += 1
-                        materials_fully_fixed.add(mat)
+                        if MaterialValidator.mark_broken_material(obj, slot_idx):
+                            materials_rebuilt += 1
                     
-                    # For materials not completely rebuilt, do minor fixes
-                    elif mat not in materials_fully_fixed:
-                        # Fix disconnected outputs
-                        if is_broken and severity == 'WARNING':
-                            if MaterialValidator.fix_disconnected_output(mat):
-                                disconnected_fixed += 1
-                        
-                        # Replace deprecated nodes
-                        replaced_count = MaterialValidator.replace_deprecated_nodes(mat)
-                        deprecated_replaced += replaced_count
+                    # Fix only minor issues (WARNINGS)
+                    elif is_broken and severity == 'WARNING':
+                        if MaterialValidator.fix_disconnected_output(mat):
+                            disconnected_fixed += 1
+                    
+                    # Replace deprecated nodes (safe operation)
+                    replaced_count = MaterialValidator.replace_deprecated_nodes(mat)
+                    deprecated_replaced += replaced_count
                     
                     # Pack external textures (always safe, makes file self-contained)
                     packed_count = MaterialValidator.pack_external_textures(mat)

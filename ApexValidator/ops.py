@@ -115,7 +115,7 @@ class APEX_OT_AutoFix(bpy.types.Operator):
     """Automatically fixes all fixable issues in Scene or Collection"""
     bl_idname = "apex.auto_fix"
     bl_label = "Auto-Fix All Issues"
-    bl_description = "Attempts to automatically fix: broken shaders, invalid drivers, broken modifiers, deprecated nodes, disconnected outputs"
+    bl_description = "Attempts to automatically fix issues and marks broken shaders with red _BROKEN TO FIX material"
     bl_options = {'REGISTER', 'UNDO'}
 
     scope: bpy.props.EnumProperty(
@@ -188,7 +188,7 @@ class APEX_OT_AutoFix(bpy.types.Operator):
             
             # Update fix counters
             exclusions.fixes_transforms = results['scales_applied'] + results['rotations_applied']
-            exclusions.fixes_materials = results['materials_rebuilt'] + results['empty_slots_fixed']
+            exclusions.fixes_materials = results['materials_rebuilt'] + results['empty_slots_fixed']  # materials_rebuilt = broken shaders marked
             exclusions.fixes_drivers = results['drivers_fixed'] + results['driver_chains_fixed']
             exclusions.fixes_modifiers = results['modifiers_fixed']
             exclusions.fixes_geometry = results['uvs_generated']
@@ -217,7 +217,7 @@ class APEX_OT_AutoFix(bpy.types.Operator):
                 if results['driver_chains_fixed'] > 0:
                     summary.append(f"{results['driver_chains_fixed']} driver chains")
                 if results['materials_rebuilt'] > 0:
-                    summary.append(f"{results['materials_rebuilt']} materials")
+                    summary.append(f"{results['materials_rebuilt']} broken shaders marked")
                 if results['empty_slots_fixed'] > 0:
                     summary.append(f"{results['empty_slots_fixed']} empty slots")
                 if results['textures_packed'] > 0:
@@ -362,6 +362,15 @@ class APEX_OT_SelectObject(bpy.types.Operator):
                     other_obj.select_set(False)
                 except (RuntimeError, ReferenceError):
                     continue
+            
+            # FORCE VISIBILITY: Ensure target object is visible
+            try:
+                view_layer_obj.hide_set(False)
+                view_layer_obj.hide_viewport = False
+                if hasattr(view_layer_obj, 'hide_render'):
+                    view_layer_obj.hide_render = False
+            except (RuntimeError, ReferenceError):
+                pass
             
             # Select and activate target
             try:

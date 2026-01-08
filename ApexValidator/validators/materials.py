@@ -60,6 +60,52 @@ class MaterialValidator:
         tree.links.new(principled.outputs[0], output.inputs[0])
     
     @staticmethod
+    def get_or_create_broken_marker_material() -> bpy.types.Material:
+        """Creates or returns the _BROKEN TO FIX marker material (red, self-illuminating)."""
+        marker_name = "_BROKEN TO FIX"
+        
+        # Check if material already exists
+        if marker_name in bpy.data.materials:
+            return bpy.data.materials[marker_name]
+        
+        # Create new marker material
+        mat = bpy.data.materials.new(name=marker_name)
+        mat.use_nodes = True
+        tree = mat.node_tree
+        tree.nodes.clear()
+        
+        # Create output node
+        output = tree.nodes.new('ShaderNodeOutputMaterial')
+        output.location = (300, 0)
+        
+        # Create emission shader (self-illuminating red)
+        emission = tree.nodes.new('ShaderNodeEmission')
+        emission.location = (0, 0)
+        emission.inputs['Color'].default_value = (1.0, 0.0, 0.0, 1.0)  # Bright red
+        emission.inputs['Strength'].default_value = 2.0  # Strong emission for visibility
+        
+        # Connect emission to output
+        tree.links.new(emission.outputs['Emission'], output.inputs['Surface'])
+        
+        return mat
+    
+    @staticmethod
+    def mark_broken_material(obj: bpy.types.Object, slot_index: int) -> bool:
+        """Replaces broken material with _BROKEN TO FIX marker. Returns True if replaced."""
+        if not obj or not hasattr(obj, 'material_slots'):
+            return False
+        
+        if slot_index < 0 or slot_index >= len(obj.material_slots):
+            return False
+        
+        try:
+            marker_mat = MaterialValidator.get_or_create_broken_marker_material()
+            obj.material_slots[slot_index].material = marker_mat
+            return True
+        except (RuntimeError, ReferenceError, IndexError):
+            return False
+    
+    @staticmethod
     def fix_empty_slots(obj: bpy.types.Object) -> int:
         """Removes empty material slots. Returns count of deleted slots."""
         if not obj or not hasattr(obj, 'material_slots') or not obj.material_slots:

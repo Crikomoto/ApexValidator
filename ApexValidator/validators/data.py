@@ -13,12 +13,7 @@ class DataValidator:
         """Check object data issues. Returns list of (issue_type, message, severity)."""
         issues = []
         
-        # Check for mesh data with multiple users (potential instancing issue)
-        if obj.type == 'MESH' and obj.data.users > 1:
-            issues.append(("DATA", 
-                          f"Mesh data '{obj.data.name}' has {obj.data.users} users (linked duplicates)", 
-                          "WARNING"))
-        
+        # NOTE: Mesh instancing (multiple users) is ignored - not a problem for animation
         # NOTE: Default mesh names (Mesh.001, etc.) are ignored - common in CAD data and not critical
         
         # Check for shape keys issues

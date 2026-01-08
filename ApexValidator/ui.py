@@ -4,8 +4,8 @@ import bpy
 class APEX_ExclusionPatterns(bpy.types.PropertyGroup):
     """Settings for object exclusions and result filtering."""
     patterns: bpy.props.StringProperty(
-        name="Exclusion Patterns",
-        description="Comma-separated object name prefixes to exclude (e.g., 'WGT-,TEMP-')",
+        name="Ignore by Name Prefix",
+        description="Comma-separated name prefixes to skip (e.g., 'WGT-,TEMP-')",
         default="WGT-"
     )
     
@@ -50,7 +50,7 @@ class APEX_ExclusionPatterns(bpy.types.PropertyGroup):
     )
     filter_geometry: bpy.props.BoolProperty(
         name="Geometry",
-        description="Show geometry issues (N-gons, missing UVs, poly count)",
+        description="Show geometry issues (missing UVs, poly count)",
         default=True
     )
     filter_transforms: bpy.props.BoolProperty(
@@ -59,28 +59,28 @@ class APEX_ExclusionPatterns(bpy.types.PropertyGroup):
         default=True
     )
     filter_modifiers: bpy.props.BoolProperty(
-        name="Modifiers",
-        description="Show modifier issues (broken, unbound, unstable)",
+        name="Tools & Effects",
+        description="Show modifier issues (tools that change object shape/behavior)",
         default=True
     )
     filter_drivers: bpy.props.BoolProperty(
-        name="Drivers",
-        description="Show driver issues (invalid, circular, missing targets)",
+        name="Animations",
+        description="Show animation driver issues (automated property changes)",
         default=True
     )
     filter_data: bpy.props.BoolProperty(
-        name="Object Data",
-        description="Show object data issues (multi-user, naming)",
+        name="Mesh Data",
+        description="Show mesh data issues",
         default=True
     )
     filter_rigging: bpy.props.BoolProperty(
-        name="Rigging",
-        description="Show rigging issues (vertex groups, armature setup)",
+        name="Bones & Weights",
+        description="Show rigging issues (armature, vertex groups, skinning)",
         default=True
     )
     filter_circular: bpy.props.BoolProperty(
-        name="Circular Deps",
-        description="Show circular dependency errors (parent loops, constraint loops)",
+        name="Dependency Loops",
+        description="Show circular dependency errors (infinite reference loops)",
         default=True
     )
 
@@ -127,26 +127,29 @@ class APEX_UL_ValidationList(bpy.types.UIList):
             
             row.label(text="", icon=type_icon)
             
-            # Object name (clickable to select)
+            # Object name (clickable to select) - compact
+            obj_col = row.column()
+            obj_col.scale_x = 0.5
             if item.object_name in context.scene.objects:
-                op = row.operator("apex.select_object", text=item.object_name, emboss=False)
+                op = obj_col.operator("apex.select_object", text=item.object_name, emboss=False)
                 op.object_name = item.object_name
             else:
-                row.label(text=item.object_name)
+                obj_col.label(text=item.object_name)
             
-            # Material name (if applicable)
+            # Material name (if applicable) - very compact
             if item.material_name != "N/A":
-                sub = row.row()
-                sub.scale_x = 0.8
-                sub.label(text=item.material_name, icon='MATERIAL')
+                mat_col = row.column()
+                mat_col.scale_x = 0.4
+                mat_col.label(text=item.material_name, icon='MATERIAL')
             
-            # Issue type badge
-            sub = row.row()
-            sub.scale_x = 0.6
-            sub.label(text=f"[{item.issue_type}]")
+            # Issue type badge - tiny
+            type_col = row.column()
+            type_col.scale_x = 0.25
+            type_col.label(text=f"{item.issue_type}")
             
-            # Message (full text, no truncation)
-            row.label(text=item.message)
+            # Message - use split layout to force it to take remaining space without truncation
+            split = row.split(factor=0.9, align=True)
+            split.label(text=item.message)
             
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
@@ -163,24 +166,47 @@ class APEX_PT_MainPanel(bpy.types.Panel):
         layout = self.layout
         wm = context.window_manager
         
-        # Quick Actions - Most common workflow at the top
+        # Section: Ignore Objects - Moved to top for easy access
+        box_exclusions = layout.box()
+        header = box_exclusions.row()
+        header.label(text="Ignore Objects", icon='FILTER')
+        header.label(text="", icon='QUESTION')  # Tooltip indicator
+        row = box_exclusions.row()
+        row.prop(context.scene.apex_exclusions, "patterns", text="")
+        info_row = box_exclusions.row()
+        info_row.label(text="Skip objects with these name prefixes (e.g., 'WGT-,TEMP-')", icon='INFO')
+        info_row.scale_y = 0.7
+        
+        layout.separator()
+        
+        # Check & Fix - Most common workflow
         box_quick = layout.box()
-        box_quick.label(text="Quick Actions", icon='PLAY')
+        quick_header = box_quick.row()
+        quick_header.label(text="Check & Fix", icon='TOOL_SETTINGS')
         
         # Single row with scope selector and main buttons
         row = box_quick.row(align=True)
-        row.label(text="Scope:")
-        row.prop(context.scene, "apex_quick_scope", text="", icon='NONE')
+        row.label(text="Check:")
+        scope_prop = row.row()
+        scope_prop.prop(context.scene, "apex_quick_scope", text="", icon='NONE')
+        scope_prop.label(text="", icon='BLANK1')  # Spacing
         
-        # Main action buttons
+        # Main action buttons with tooltips
         row = box_quick.row(align=True)
         row.scale_y = 1.5
         
-        op_scan = row.operator("apex.validate", text="Scan", icon='ZOOM_IN')
+        scan_row = row.row()
+        op_scan = scan_row.operator("apex.validate", text="Find Problems", icon='VIEWZOOM')
         op_scan.scope = context.scene.apex_quick_scope
         
-        op_autofix = row.operator("apex.auto_fix", text="Auto-Fix", icon='TOOL_SETTINGS')
+        fix_row = row.row()
+        op_autofix = fix_row.operator("apex.auto_fix", text="Fix Automatically", icon='SHADERFX')
         op_autofix.scope = context.scene.apex_quick_scope
+        
+        # Help text
+        help_row = box_quick.row()
+        help_row.scale_y = 0.6
+        help_row.label(text="Find all issues, then fix them automatically where possible", icon='INFO')
         
         # Progress indicator (shown when processing)
         exclusions = context.scene.apex_exclusions
@@ -216,13 +242,6 @@ class APEX_PT_MainPanel(bpy.types.Panel):
                     counter_grid.label(text=f"Rigging: {exclusions.fixes_rigging}", icon='ARMATURE_DATA')
         
         layout.separator()
-        
-        # Section: Exclusion Patterns
-        box_exclusions = layout.box()
-        box_exclusions.label(text="Exclusion Patterns", icon='FILTER')
-        row = box_exclusions.row()
-        row.prop(context.scene.apex_exclusions, "patterns", text="")
-        box_exclusions.label(text="Comma-separated prefixes (e.g., 'WGT-,TEMP-')", icon='INFO')
 
         # Section: Result Filters
         if len(context.scene.apex_validation_results) > 0:
@@ -231,8 +250,14 @@ class APEX_PT_MainPanel(bpy.types.Panel):
             filter_header = box_filters.row()
             filter_header.label(text="Filter Results", icon='FILTER')
             
-            # Show All toggle
-            filter_header.prop(context.scene.apex_exclusions, "filter_show_all", text="Show All", toggle=True)
+            # Show All toggle with tooltip
+            toggle_row = filter_header.row()
+            toggle_row.prop(context.scene.apex_exclusions, "filter_show_all", text="Show All", toggle=True)
+            
+            # Help text for filters
+            help_row = box_filters.row()
+            help_row.scale_y = 0.6
+            help_row.label(text="Toggle 'Show All' off to filter specific issue types", icon='INFO')
             
             # Individual filter checkboxes (disabled when Show All is active)
             if not context.scene.apex_exclusions.filter_show_all:
@@ -240,11 +265,11 @@ class APEX_PT_MainPanel(bpy.types.Panel):
                 grid.prop(context.scene.apex_exclusions, "filter_materials", text="Materials", icon='MATERIAL')
                 grid.prop(context.scene.apex_exclusions, "filter_geometry", text="Geometry", icon='MESH_DATA')
                 grid.prop(context.scene.apex_exclusions, "filter_transforms", text="Transforms", icon='ORIENTATION_GLOBAL')
-                grid.prop(context.scene.apex_exclusions, "filter_modifiers", text="Modifiers", icon='MODIFIER')
-                grid.prop(context.scene.apex_exclusions, "filter_drivers", text="Drivers", icon='DRIVER')
-                grid.prop(context.scene.apex_exclusions, "filter_rigging", text="Rigging", icon='ARMATURE_DATA')
-                grid.prop(context.scene.apex_exclusions, "filter_circular", text="Circular", icon='CON_TRACKTO')
-                grid.prop(context.scene.apex_exclusions, "filter_data", text="Data", icon='OUTLINER_DATA_MESH')
+                grid.prop(context.scene.apex_exclusions, "filter_modifiers", text="Tools/Effects", icon='MODIFIER')
+                grid.prop(context.scene.apex_exclusions, "filter_drivers", text="Animations", icon='DRIVER')
+                grid.prop(context.scene.apex_exclusions, "filter_rigging", text="Bones/Weights", icon='ARMATURE_DATA')
+                grid.prop(context.scene.apex_exclusions, "filter_circular", text="Loops", icon='CON_TRACKTO')
+                grid.prop(context.scene.apex_exclusions, "filter_data", text="Mesh Data", icon='OUTLINER_DATA_MESH')
 
         # Validation Results Panel - Categorized by Type and Severity
         if len(context.scene.apex_validation_results) > 0:
@@ -262,7 +287,12 @@ class APEX_PT_MainPanel(bpy.types.Panel):
                 summary_row.label(text=f"{error_count} Errors", icon='CANCEL')
             if warning_count > 0:
                 summary_row.label(text=f"{warning_count} Warnings", icon='ERROR')
-            summary_box.operator("apex.clear_results", text="Clear All", icon='X')
+            summary_box.operator("apex.clear_results", text="Clear Results", icon='X')
+            
+            # Add help text
+            help_row = summary_box.row()
+            help_row.scale_y = 0.6
+            help_row.label(text="Click objects to select/isolate | Red=Error, Yellow=Warning", icon='INFO')
             
             # Categorize issues by type
             categories = {}

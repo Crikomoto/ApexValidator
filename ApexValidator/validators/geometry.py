@@ -34,12 +34,7 @@ class GeometryValidator:
                           f"Mesh has {len(mesh.vertices)} loose vertices (no edges)", 
                           "WARNING"))
         
-        # Check for N-gons (faces with more than 4 vertices)
-        ngon_count = sum(1 for poly in mesh.polygons if len(poly.vertices) > 4)
-        if ngon_count > 0:
-            issues.append(("GEOMETRY", 
-                          f"Mesh contains {ngon_count} N-gon(s) (faces with >4 vertices)", 
-                          "WARNING"))
+        # NOTE: N-gons are NOT checked - they're normal for CAD data and don't cause issues
         
         # Check for missing UVs
         if len(mesh.uv_layers) == 0 and len(mesh.polygons) > 0:

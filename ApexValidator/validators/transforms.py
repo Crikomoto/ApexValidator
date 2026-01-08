@@ -43,6 +43,15 @@ class TransformValidator:
         if obj.type != 'MESH':
             return 0
         
+        # CRITICAL: Validate object is not deleted/invalid
+        try:
+            if not obj or not hasattr(obj, 'name') or obj.name not in bpy.data.objects:
+                return 0
+            # Test if we can access object properties
+            _ = obj.rotation_euler
+        except (RuntimeError, ReferenceError, AttributeError):
+            return 0
+        
         rot = obj.rotation_euler
         
         # Check if rotation needs fixing
@@ -52,7 +61,10 @@ class TransformValidator:
         view_layer = bpy.context.view_layer
         
         # Skip if object is not in current view layer
-        if obj.name not in view_layer.objects:
+        try:
+            if obj.name not in view_layer.objects:
+                return 0
+        except (RuntimeError, ReferenceError):
             return 0
         
         # Ensure ALL objects are in OBJECT mode
@@ -86,12 +98,20 @@ class TransformValidator:
                     pass
             
             # Make data single-user if needed (prevents multi-user errors)
-            if hasattr(obj, 'data') and obj.data and obj.data.users > 1:
-                obj.data = obj.data.copy()
+            try:
+                if hasattr(obj, 'data') and obj.data and obj.data.users > 1:
+                    obj.data = obj.data.copy()
+            except (RuntimeError, ReferenceError, AttributeError):
+                return 0
             
-            # Select only target object
-            obj.select_set(True)
-            view_layer.objects.active = obj
+            # Validate object is still accessible
+            try:
+                if obj.name not in bpy.data.objects:
+                    return 0
+                obj.select_set(True)
+                view_layer.objects.active = obj
+            except (RuntimeError, ReferenceError, AttributeError):
+                return 0
             
             # CRITICAL: Update view_layer after selection change
             try:
