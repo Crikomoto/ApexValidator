@@ -1,72 +1,78 @@
-# 🎬 ApexSlate
+# 🛡️ Apex Validator
 
-**Professional Camera & Shot Management for Blender 5.0+**
+**Scene and Asset Validation for Blender 5.0+ Production Pipelines**
 
-Transform your Blender workflow with cinematic camera controls, intuitive shot management, and powerful batch rendering tools. ApexSlate brings the precision of professional camera rigs and the efficiency of modern shot planning to your 3D projects.
+A comprehensive validation and auto-fix tool for detecting and resolving common production issues in Blender scenes. Built for studios, freelancers, and artists who need clean, production-ready assets.
 
 ---
 
 ## ✨ Features
 
-### 🎥 Professional Camera Rigs
-- **Parametric Controls**: Dolly, orbit, tilt, roll, and pan with driver-based animation
-- **Real Sensor Presets**: Full Frame, APS-C, Micro 4/3, ARRI Alexa 35, iPhone sensors
-- **Lens Library**: From ultra-wide to telephoto, including iPhone 16 Pro camera specs
-- **Interactive Focus Picker**: Click-to-focus with real-time depth-of-field preview
-- **Macro Mode**: Simulate f/22 aperture for close-up shots
+### 🔍 **Comprehensive Validation**
+Apex Validator scans your scene or collections for 9 categories of issues:
 
-### 🎮 Director Mode
-Take control of your camera like never before with **Director Mode** - an intuitive modal interface for real-time camera manipulation:
+- **🎨 Materials & Shaders**: Broken shaders, missing nodes, disconnected outputs, deprecated nodes, texture issues
+- **📐 Geometry**: N-gons, missing UVs, loose vertices, zero-face meshes, high poly count warnings
+- **📏 Transforms**: Unapplied scales, non-uniform scales, unapplied rotations
+- **🔧 Modifiers**: Missing targets, unbound Surface Deform, broken boolean/array/shrinkwrap setups
+- **🚗 Drivers**: Invalid expressions, circular dependencies, missing targets
+- **📦 Object Data**: Multi-user data blocks, naming conflicts
+- **🦴 Rigging**: Empty vertex groups, orphaned vertex groups, zero-weight groups, armature issues
+- **♻️ Circular Dependencies**: Parent loops, constraint loops, modifier dependencies
+- **🎯 PBR Compatibility**: Cycles/Eevee shader compatibility warnings
 
-- **Hotkey-Driven Workflow**: Switch between dolly, orbit, tilt, roll, and pan on the fly
-- **Interactive Focus Picking**: Click anywhere in your scene to set focus distance
-- **Precision Mode**: Hold Shift for fine-tuned adjustments
-- **Customizable Hotkeys**: Configure your own keyboard layout in preferences
-- **Visual Feedback**: On-screen HUD shows active mode and camera info
+### ⚡ **Smart Auto-Fix**
+Automatically repairs common issues without manual intervention:
 
-Press **F1** to enter Director Mode and experience camera control like a pro.
+- ✅ Resets broken shaders to clean Principled BSDF setup
+- ✅ Connects disconnected Material Output nodes
+- ✅ Replaces deprecated shader nodes (Diffuse BSDF, Glossy BSDF, etc.)
+- ✅ Removes invalid drivers and circular dependencies
+- ✅ Cleans up broken modifiers (missing targets, unbound Surface Deform)
+- ✅ Applies unapplied transforms
+- ✅ Removes empty vertex groups
+- ✅ Fixes multi-user data blocks
 
-### 📊 Shot Management
-- **Smart Scan**: Automatically detect shots from keyframe ranges with gap support
-- **Timeline Integration**: Camera markers sync automatically with your shot list
-- **Frame Range Detection**: Precise shot boundaries based on actual keyframes
-- **Custom Naming**: Rename shots and propagate changes across the entire rig hierarchy
-- **Isolation Mode**: Focus on individual shots during playback
+See [AUTO_FIX_GUIDE.md](ApexValidator/AUTO_FIX_GUIDE.md) for detailed information on what can be auto-fixed.
 
-### 🎨 Composition Tools
-- **Camera Lister**: Switch between cameras with one click, auto-hide inactive rigs
-- **Composition Guides**: Rule of thirds, center marks, golden ratio overlays
-- **Viewport HUD**: Real-time shot name and active camera display
-- **Format Presets**: YouTube 16:9, Instagram Story 9:16, Square 1:1, Cinema 2.35:1, 4K, and custom resolutions
+### 🎯 **Flexible Scope**
+- **Scene Mode**: Validate entire scene
+- **Collection Mode**: Validate active collection only
+- **Exclusion Patterns**: Skip objects by name prefix (e.g., `WGT-`, `TEMP-`)
 
-### 🚀 Batch Rendering
-- **Playblast Queue**: Quick OpenGL previews with metadata burn-in
-- **Internal Rendering**: Render all shots with one click
-- **Batch Scripts**: Export .bat/.sh files for background rendering
-- **Resolution Override**: Set per-shot resolution independent of scene settings
-- **Smart Output**: Automatic folder structure based on blend file name
+### 📊 **Smart Filtering**
+Filter validation results by category:
+- Materials & Shaders
+- Geometry Issues
+- Transform Issues
+- Modifier Problems
+- Driver Errors
+- Object Data
+- Rigging Issues
+- Circular Dependencies
 
-### 🔧 Workflow Enhancements
-- **Auto-Update System**: Check for updates directly from GitHub
-- **Clean Timeline Markers**: Remove orphaned markers with one click
-- **Bug Reporting**: Pre-filled GitHub issue templates with system info
-- **Backward Compatibility**: Automatically upgrades old rigs with new features
+### 🎨 **Intuitive UI**
+- Color-coded severity levels (ERROR vs WARNING)
+- One-click object selection from results
+- Progress tracking during auto-fix operations
+- Real-time fix counters by category
+- Clean, organized panel layout
 
 ---
 
 ## 📦 Installation
 
 ### Quick Install
-1. Download the latest release from [Releases](https://github.com/Crikomoto/ApexSlate/releases)
+1. Download the latest release or clone this repository
 2. In Blender, go to `Edit → Preferences → Add-ons`
-3. Click `Install...` and select the downloaded `.zip` file
-4. Enable **ApexSlate** in the add-ons list
-5. Find the panel in `3D View → Sidebar → ApexSlate` (press **N** to toggle sidebar)
+3. Click `Install...` and select the `ApexValidator` folder or ZIP file
+4. Enable **Apex Validator** in the add-ons list
+5. Find the panel in `3D View → Sidebar → Apex` (press **N** to toggle sidebar)
 
 ### Manual Install
 1. Clone this repository or download as ZIP
-2. Copy the `apex_slate` folder to your Blender addons directory:
-   - **Windows**: `%APPDATA%/Blender Foundation/Blender/5.0/scripts/addons/`
+2. Copy the `ApexValidator` folder to your Blender addons directory:
+   - **Windows**: `%APPDATA%\Blender Foundation\Blender\5.0\scripts\addons\`
    - **macOS**: `~/Library/Application Support/Blender/5.0/scripts/addons/`
    - **Linux**: `~/.config/blender/5.0/scripts/addons/`
 3. Restart Blender and enable the addon
@@ -75,143 +81,205 @@ Press **F1** to enter Director Mode and experience camera control like a pro.
 
 ## 🎯 Quick Start
 
-### Create Your First Camera Rig
-1. Place your 3D cursor where you want the camera
-2. Open the **ApexSlate** panel in the sidebar
-3. Click **Create Camera Rig**
-4. A professional camera rig appears with full parametric controls
+### Basic Workflow
+1. Open the **Apex Validator** panel in the 3D View sidebar (press **N**)
+2. Select scope: **Scene** or **Collection**
+3. Click **Validate** to scan for issues
+4. Review results in the validation list
+5. Click **Auto-Fix All** to automatically repair fixable issues
+6. Use filters to focus on specific issue types
 
-### Enter Director Mode
-1. Select any camera rig
-2. Press **F1** (or click **DIRECTOR MODE**)
-3. Use number keys to switch between modes:
-   - **1** - Dolly (Distance)
-   - **2** - Orbit
-   - **3** - Tilt (Elevation)
-   - **4** - Roll
-   - **5** - Pan (Move)
-   - **6** - Interactive Focus
-   - **7** - Free Rotate
-   - **8** - Snap to Object
-4. Move your mouse to adjust, click to confirm, ESC to exit
+### Understanding Results
+- **🔴 ERROR**: Critical issues that should be fixed
+- **🟡 WARNING**: Non-critical issues that may need attention
+- Click any item to select the object in the scene
+- Use category filters to focus on specific issue types
 
-### Manage Shots
-1. Animate your camera rigs with keyframes
-2. Click **Smart Scan** in the Render Queue panel
-3. All shots are automatically detected and added to the timeline
-4. Click any shot in the list to switch cameras
-5. Use **Playblast** for quick previews or **Render All Shots** for final output
+### Exclusion Patterns
+Exclude objects from validation by name prefix:
+1. Enter comma-separated patterns (e.g., `WGT-,TEMP-,_IGNORE`)
+2. Any object starting with these prefixes will be skipped
+3. Default pattern `WGT-` excludes widget objects
+
+---
+
+## 📋 Validation Categories
+
+### 🎨 Material & Shader Issues
+- **Broken Shaders**: Materials with no nodes or missing output nodes
+- **Disconnected Outputs**: Material Output not connected to surface shader
+- **Deprecated Nodes**: Old Diffuse BSDF, Glossy BSDF nodes that should be Principled
+- **Missing Textures**: Image texture nodes pointing to missing files
+- **Empty Material Slots**: Mesh objects with empty material slots
+- **Shader Compatibility**: Cycles-only or Eevee-only nodes causing render issues
+
+### 📐 Geometry Problems
+- **N-gons**: Faces with more than 4 vertices
+- **Missing UVs**: Meshes without UV maps
+- **Loose Vertices**: Vertices not connected to any edges
+- **Zero-Face Meshes**: Meshes with vertices but no faces
+- **High Poly Count**: Meshes exceeding reasonable polygon limits
+
+### 📏 Transform Issues
+- **Unapplied Scale**: Non-uniform scale transforms not applied
+- **Unapplied Rotation**: Rotation transforms not applied to mesh data
+- **Non-Uniform Scale**: Different scale values on X/Y/Z axes
+
+### 🔧 Modifier Problems
+- **Missing Targets**: Boolean, Shrinkwrap, Array modifiers with no target object
+- **Unbound Surface Deform**: Critical crash risk - modifier not bound to target
+- **Missing Armature**: Armature modifier with no armature object assigned
+- **Broken Data Transfer**: Data Transfer modifier with no source object
+
+### 🚗 Driver Issues
+- **Invalid Expressions**: Corrupted or broken driver expressions
+- **Circular Dependencies**: Drivers referencing their own object
+- **Missing Targets**: Driver variables pointing to deleted objects
+- **Invalid Variables**: Driver variables with corrupt data
+
+### 🦴 Rigging Issues
+- **Empty Vertex Groups**: Vertex groups with no vertices assigned
+- **Zero-Weight Groups**: Vertex groups where all weights are 0
+- **Orphaned Groups**: Vertex groups that don't match any bones in armature
+- **Missing Armature Modifier**: Rigged mesh without armature modifier
+
+### 📦 Object Data Issues
+- **Multi-User Data**: Multiple objects sharing the same mesh/curve data
+- **Naming Conflicts**: Data blocks with confusing or non-standard names
+
+### ♻️ Circular Dependencies
+- **Parent Loops**: Objects parented in a circular chain
+- **Constraint Loops**: Constraint dependencies forming cycles
+- **Modifier Loops**: Modifier target chains creating circular references
+
+---
+
+## 🛠️ Auto-Fix Capabilities
+
+Apex Validator can automatically fix many common issues:
+
+### ✅ Automatically Fixed
+- Broken shader node trees (resets to Principled BSDF)
+- Disconnected Material Output nodes
+- Deprecated shader nodes (replaced with Principled BSDF)
+- Invalid drivers (removed)
+- Circular driver dependencies (broken)
+- Broken modifiers with missing targets (removed)
+- Unbound Surface Deform modifiers (removed - prevents crashes)
+- Unapplied transforms (applied to mesh data)
+- Empty vertex groups (removed)
+- Multi-user mesh data (made single-user)
+
+### ⚠️ Requires Manual Fix
+- Missing texture files (you need to locate/relink)
+- Geometry issues (N-gons, missing UVs - artistic decisions)
+- Empty material slots (you decide what material to assign)
+- Shader compatibility warnings (depends on your render engine)
+
+See [AUTO_FIX_GUIDE.md](ApexValidator/AUTO_FIX_GUIDE.md) for complete details on what can and cannot be auto-fixed.
 
 ---
 
 ## 🎨 Use Cases
 
-- **Product Visualization**: Multi-angle turntable shots with precise camera placement
-- **Architectural Walkthroughs**: Smooth camera paths with professional controls
-- **Character Animation**: Multiple camera angles for dialogue and action sequences
-- **Motion Graphics**: Quick shot sequencing with automated batch rendering
-- **Showreels**: Manage dozens of shots in a single blend file
+### 🏭 Production Pipelines
+- Pre-flight checks before sending assets to rendering
+- Team collaboration - ensure everyone follows naming conventions
+- Asset library maintenance - keep library clean and validated
+
+### 🎬 Studio Workflows
+- Quality control for freelance submissions
+- Asset validation before rigging or animation
+- Final scene cleanup before client delivery
+
+### 🎓 Education
+- Teaching proper asset creation workflows
+- Student project validation and grading
+- Learning material best practices
+
+### 🎮 Game Asset Preparation
+- Validate topology before export to game engines
+- Ensure proper UV mapping on all assets
+- Check transform applications for clean FBX/glTF export
 
 ---
 
-## 🛠️ Advanced Features
+## 💡 Best Practices
 
-### Custom Hotkeys
-Configure Director Mode hotkeys in **Edit → Preferences → Add-ons → ApexSlate**. Each action (dolly, orbit, tilt, roll, pan, focus, rotate, snap) can be mapped to any key.
+### 1. **Validate Early, Validate Often**
+Run validation during modeling, not just at the end. Catching issues early saves time.
 
-### Focus System
-- Focus target is visible in viewport for intuitive placement
-- All focus keyframes stored on master controller for centralized animation
-- Driver-based system links focus empty to custom properties
-- Real-time depsgraph updates ensure smooth interaction
+### 2. **Use Collection Mode for Iterative Work**
+When working on specific assets, validate just that collection to get faster feedback.
 
-### Rig Visibility Management
-When switching cameras in the Camera Lister, only the active camera, master control, and focus empty remain visible. All helper objects (MCH chain) are automatically hidden for a clean viewport.
+### 3. **Set Up Exclusion Patterns**
+Configure patterns for rig widgets (`WGT-`), temporary objects (`TEMP-`), and helper objects to reduce noise.
 
-### Automatic Renaming
-Rename a camera in the Camera Lister, and ApexSlate automatically propagates the change to:
-- Master control (`Shot_01_CTRL` → `NewName_CTRL`)
-- All child elements (MCH objects, camera, focus target)
-- Associated timeline markers
-- Take list entries
+### 4. **Review Before Auto-Fix**
+Check the validation results first. Auto-fix is powerful but might remove things you want to keep.
+
+### 5. **Filter by Category**
+Use category filters to focus on specific types of issues. Fix materials first, then geometry, then modifiers.
+
+### 6. **Understand Severity Levels**
+- **ERROR** (red): Must be fixed for production
+- **WARNING** (yellow): Should be reviewed, may be intentional
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you have ideas for new features or improvements:
+Contributions are welcome! To contribute:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create a feature branch (`git checkout -b feature/NewValidator`)
+3. Commit your changes (`git commit -m 'Add vertex color validator'`)
+4. Push to the branch (`git push origin feature/NewValidator`)
 5. Open a Pull Request
 
----
-
-## 🐛 Bug Reports
-
-Found a bug? Use the built-in bug reporter:
-1. Go to **Edit → Preferences → Add-ons → ApexSlate**
-2. Scroll to **Bug Reports & Feature Requests**
-3. Click **Report Bug on GitHub**
-4. Fill in the pre-populated template and submit
-
-Or manually open an issue on [GitHub Issues](https://github.com/Crikomoto/ApexSlate/issues).
+### Adding New Validators
+New validators should be added to `ApexValidator/validators/` and follow the pattern:
+```python
+class MyValidator:
+    @staticmethod
+    def validate_my_check(obj) -> List[Tuple[str, str, str]]:
+        """Returns list of (issue_type, message, severity)."""
+        issues = []
+        # ... validation logic
+        return issues
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL-3.0 License - see the LICENSE file for details.
 
 ---
 
 ## 👨‍💻 Author
 
-**Cristian Koch R.**
-
-- GitHub: [@Crikomoto](https://github.com/Crikomoto)
-
----
-
-## 🌟 Support
-
-If ApexSlate improves your workflow, consider:
-- ⭐ Starring this repository
-- 🐦 Sharing it with other Blender artists
-- 💬 Providing feedback and feature requests
+**Apex Dev**
 
 ---
 
 ## 📚 Version History
 
-### v1.7.5 - Current Release
-- Enhanced camera lister with automatic visibility management
-- Automatic rig renaming with hierarchy propagation
-- Timeline marker cleanup system
-- Smart scan with precise keyframe detection and gap support
-- Bug report integration with GitHub
-- Focus picker improvements and error fixes
-- Cross-platform hotkey support verified
-
-### v1.5.0
-- Focus picker visibility enhancements
-- Centralized keyframe management
-- Director mode improvements
-- Custom hotkey system
-- Auto-update infrastructure
+### v1.2.0 - Current Release
+- Complete validation system with 9 categories
+- Smart auto-fix for common issues
+- Category-based filtering system
+- Progress tracking for auto-fix operations
+- Exclusion pattern support
+- Scene and Collection scope modes
+- One-click object selection from results
+- Real-time fix counters by category
 
 ---
 
-## 🎓 Tips & Tricks
+## 🙏 Acknowledgments
 
-- **Shift in Director Mode**: Hold Shift for precision movements at 10% speed
-- **Quick Focus**: Press 6 in Director Mode, click anywhere, done!
-- **Timeline Markers**: Camera markers auto-sync - use Clean Markers to remove orphans
-- **Batch Rendering**: Save your .blend file first to set proper output paths
-- **Viewport Performance**: Hidden rigs don't render - switch cameras freely without lag
-- **Keyframe Workflow**: ApexSlate respects your keyframes - gaps between shots are preserved
+Built for the Blender community to help maintain clean, production-ready assets.
 
 ---
 
